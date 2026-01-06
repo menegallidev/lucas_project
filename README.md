@@ -1,2 +1,2 @@
-# Sistema do Lucas
-Um projeto para a empresa do Lucas para gestão e controle dos seus processos e compromissos.
+# Sistema para a empresa do Lucas
+Esse projeto consiste em um sistema web para a gestão de clientes, agendamentos e manutenções de seus clientes de ar-condicionado e também para o controle de estoque de seus produtos de venda.
