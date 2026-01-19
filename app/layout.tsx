@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "sonner";
+import { ThemeProvider } from "@/components/layout/theme-provider";
 
 export const metadata: Metadata = {
   title: "Projeto Lucas",
@@ -15,8 +16,15 @@ export default function RootLayout({
   return (
     <html lang="pt-br">
       <body>
-        {children}
-        <Toaster position="top-center" duration={3000} />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+          <Toaster position="top-center" duration={3000} />
+        </ThemeProvider>
       </body>
     </html>
   );
