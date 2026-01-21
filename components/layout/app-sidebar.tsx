@@ -57,7 +57,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     return (
         <Sidebar collapsible="icon" {...props}>
             <SidebarHeader>
-                <SidebarBrand name="Nome da Empresa" subtitle="Painel Administrativo" logoSrc="/perfil-empresa.jpg" />
+                <SidebarBrand name="Nome da do lucas" subtitle="Painel Administrativo" logoSrc="/perfil-empresa.jpg" />
             </SidebarHeader>
             <SidebarContent>
                 <NavMain items={data.navMain} />
