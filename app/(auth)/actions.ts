@@ -3,6 +3,8 @@
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
+import { authCookie, signAuthToken } from "@/lib/auth";
+import { cookies } from "next/headers";
 
 export type LoginState = { ok: boolean; message?: string; attempt: number };
 
@@ -20,7 +22,7 @@ export async function loginAction(prevState: LoginState, formData: FormData): Pr
 
     const user = await prisma.user.findFirst({
         where: { cpf },
-        select: { id: true, passwordHash: true },
+        select: { id: true, passwordHash: true, name: true },
     });
 
     if (!user) {
@@ -41,7 +43,12 @@ export async function loginAction(prevState: LoginState, formData: FormData): Pr
         };
     }
 
-    // TODO: set cookie/session aqui (ex: cookies().set(...))
+    const token = await signAuthToken({
+        sub: String(user.id),
+        name: user.name,
+    });
+
+    (await cookies()).set(authCookie.name, token, authCookie.options);
 
     redirect("/dashboard");
 }

@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/sidebar";
 import {
     ClipboardList,
+    LayoutDashboard,
     Settings2
 } from "lucide-react";
 import * as React from "react";
@@ -24,6 +25,11 @@ const data = {
     },
     navMain: [
         {
+            title: "Dashboard",
+            url: "/dashboard",
+            icon: LayoutDashboard,
+        },
+        {
             title: "Cadastros",
             url: "#",
             icon: ClipboardList,
@@ -31,7 +37,7 @@ const data = {
             items: [
                 {
                     title: "Clientes",
-                    url: "#",
+                    url: "/clients",
                 },
                 {
                     title: "Usuários",
