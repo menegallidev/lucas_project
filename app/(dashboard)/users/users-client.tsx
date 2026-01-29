@@ -1,5 +1,6 @@
 "use client";
 
+import { ConfirmDialog } from "@/components/app/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -22,14 +23,18 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { formatCpf } from "@/lib/formatCPF";
 import { MoreHorizontalIcon, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { deleteUserAction, DeleteUserState } from "./actions";
 
 type UserRow = { id: number; name: string; cpf: string };
+const initialDeleteState: DeleteUserState = { ok: true, attempt: 0 };
 
 export function UsersClient({ initialUsers, searchParams }: { initialUsers: UserRow[]; searchParams: string; }) {
     const router = useRouter();
     const [search, setSearch] = useState<string>(searchParams);
+    const [deleteState, deleteFormAction, deleting] = useActionState(deleteUserAction, initialDeleteState);
+    const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
 
     function handleSearch() {
         try {
@@ -44,6 +49,15 @@ export function UsersClient({ initialUsers, searchParams }: { initialUsers: User
             toast.error(String((err ?? "")));
         }
     }
+
+    useEffect(() => {
+        if (!deleteState.attempt) return;
+
+        if (deleteState.ok) toast.success(deleteState.message ?? "Usuário excluído com sucesso!");
+        else toast.error(deleteState.message ?? "Não foi possível excluir.");
+
+        router.refresh();
+    }, [deleteState.attempt, deleteState.ok, deleteState.message, router]);
 
     return (
         <div className="flex flex-col gap-4">
@@ -114,7 +128,38 @@ export function UsersClient({ initialUsers, searchParams }: { initialUsers: User
                                             Editar
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />
-                                        <DropdownMenuItem variant="destructive">Excluir</DropdownMenuItem>
+                                        <ConfirmDialog
+                                            title="Excluir usuário"
+                                            description={
+                                                <>
+                                                    Tem certeza que deseja excluir este usuário? <br />
+                                                    Essa ação não pode ser desfeita.
+                                                </>
+                                            }
+                                            confirmText={deleting ? "Excluindo..." : "Excluir"}
+                                            cancelText="Cancelar"
+                                            confirmVariantClassName="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                            trigger={
+                                                <DropdownMenuItem
+                                                    variant="destructive"
+                                                    onSelect={(e) => {
+                                                        e.preventDefault();
+                                                        setSelectedUserId(u.id);
+                                                    }}
+                                                >
+                                                    Excluir
+                                                </DropdownMenuItem>
+                                            }
+                                            onConfirm={async () => {
+                                                if (!selectedUserId) return;
+
+                                                const fd = new FormData();
+                                                fd.set("id", String(selectedUserId));
+
+                                                await deleteFormAction(fd);
+                                            }}
+                                        />
+
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </TableCell>

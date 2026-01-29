@@ -1,13 +1,21 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { deleteUserById } from "@/server/services/users.service";
 import bcrypt from "bcryptjs";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 export type CreateUserState = {
     ok: boolean;
     message?: string;
     fieldErrors?: Record<string, string[]>;
+    attempt: number;
+};
+
+export type DeleteUserState = {
+    ok: boolean;
+    message?: string;
     attempt: number;
 };
 
@@ -22,6 +30,10 @@ const createUserSchema = z
         path: ["passwordConfirm"],
         message: "As senhas não coincidem",
     });
+
+const deleteSchema = z.object({
+    id: z.number().int().positive(),
+});
 
 export async function createUserAction(prev: CreateUserState, formData: FormData): Promise<CreateUserState> {
     const raw = {
@@ -66,4 +78,34 @@ export async function createUserAction(prev: CreateUserState, formData: FormData
     });
 
     return { ok: true, attempt: prev.attempt + 1, message: "Usuário criado com sucesso!" };
+}
+
+export async function deleteUserAction(
+    prev: DeleteUserState,
+    formData: FormData
+): Promise<DeleteUserState> {
+    const rawId = Number(formData.get("id"));
+
+    console.log({ rawId });
+
+    const parsed = deleteSchema.safeParse({ id: rawId });
+    if (!parsed.success) {
+        return { ok: false, message: "ID inválido.", attempt: prev.attempt + 1 };
+    }
+
+    try {
+        await deleteUserById(parsed.data.id);
+
+        revalidatePath("/users");
+
+        return { ok: true, message: "Usuário excluído com sucesso!", attempt: prev.attempt + 1 };
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (e: any) {
+        return {
+            ok: false,
+            message: e?.message ?? "Não foi possível excluir o usuário.",
+            attempt: prev.attempt + 1,
+        };
+    }
 }

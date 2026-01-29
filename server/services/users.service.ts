@@ -18,3 +18,22 @@ export async function listUsersBySearch(search?: string) {
 
     return items;
 }
+
+export async function deleteUserById(id: number) {
+    if (!Number.isInteger(id) || id <= 0) {
+        throw new Error("ID inválido");
+    }
+
+    const exists = await prisma.user.findUnique({
+        where: { id },
+        select: { id: true },
+    });
+
+    if (!exists) {
+        throw new Error("Usuário não encontrado");
+    }
+
+    await prisma.user.delete({ where: { id } });
+
+    return { ok: true };
+}
