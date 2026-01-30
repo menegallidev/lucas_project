@@ -21,7 +21,6 @@ export function SidebarBrand({ name, subtitle = "Gestão", logoSrc = "/logo.png"
                     size="lg"
                     className={cn(
                         "cursor-default hover:bg-transparent active:bg-transparent",
-                        // quando colapsado, centraliza
                         isCollapsed && "justify-center"
                     )}
                 >

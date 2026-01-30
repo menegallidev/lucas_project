@@ -62,7 +62,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
 
                     <div className="bg-muted relative hidden md:block">
                         <Image
-                            src="/login-image-v3.jpg"
+                            src="/logo.jpeg"
                             alt="Imagem da tela de login"
                             fill
                             sizes="(min-width: 768px) 50vw, 100vw"

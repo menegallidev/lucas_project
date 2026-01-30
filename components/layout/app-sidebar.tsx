@@ -51,7 +51,7 @@ const data = {
             icon: Settings2,
             items: [
                 {
-                    title: "Geral",
+                    title: "Geral - Em Construção",
                     url: "#",
                 },
             ],
@@ -59,17 +59,19 @@ const data = {
     ],
 };
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({ user, ...props }: React.ComponentProps<typeof Sidebar> & {
+    user: { name: string, email: string, avatar: string }
+}) {
     return (
         <Sidebar collapsible="icon" {...props}>
             <SidebarHeader>
-                <SidebarBrand name="Nome da empresa" subtitle="Painel Administrativo" logoSrc="/perfil-empresa.jpg" />
+                <SidebarBrand name="Inova Grelhas Lineares" subtitle="Painel Administrativo" logoSrc="/logo-cut.jpeg" />
             </SidebarHeader>
             <SidebarContent>
                 <NavMain items={data.navMain} />
             </SidebarContent>
             <SidebarFooter>
-                <NavUser user={data.user} />
+                <NavUser user={user} />
             </SidebarFooter>
             <SidebarRail />
         </Sidebar>

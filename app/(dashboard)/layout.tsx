@@ -3,12 +3,24 @@ import { AppSidebar } from "@/components/layout/app-sidebar";
 import { ModeToggle } from "@/components/layout/mode-toggle";
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { authCookie, verifyAuthToken } from "@/lib/auth";
+import { cookies } from "next/headers";
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+    const token = (await cookies()).get(authCookie.name)?.value;
+
+    const payload = token ? await verifyAuthToken(token) : null;
+
+    const user = {
+        name: String(payload?.name ?? "Usuário"),
+        email: "",
+        avatar: "",
+    };
+
     return (
         <>
             <SidebarProvider>
-                <AppSidebar />
+                <AppSidebar user={user} />
 
                 <SidebarInset>
                     <header className="flex h-16 shrink-0 items-center gap-2 px-4 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
