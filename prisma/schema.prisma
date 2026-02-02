@@ -7,6 +7,16 @@ datasource db {
   provider = "postgresql"
 }
 
+enum TipoPessoa {
+  PF
+  PJ
+}
+
+enum ClientStatus {
+  ATIVO
+  INATIVO
+}
+
 model User {
   id           Int    @id @default(autoincrement())
   name         String
@@ -17,4 +27,38 @@ model User {
   updatedAt DateTime @updatedAt
 
   @@map("users")
+}
+
+model Client {
+  id Int @id @default(autoincrement())
+
+  personType TipoPessoa
+  name       String
+  tradeName  String?
+  document   String?    @unique
+  stateTaxId String?
+  birthDate  DateTime?
+
+  email    String?
+  phone1   String
+  phone2   String?
+  whatsapp String?
+
+  zipCode        String
+  street         String
+  number         String
+  complement     String?
+  neighborhood   String
+  city           String
+  state          String
+  referencePoint String?
+
+  paymentTerms String?
+  notes        String?
+
+  status    ClientStatus @default(ATIVO)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@map("clients")
 }

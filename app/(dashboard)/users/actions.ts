@@ -117,8 +117,6 @@ export async function deleteUserAction(
 ): Promise<DeleteUserState> {
     const rawId = Number(formData.get("id"));
 
-    console.log({ rawId });
-
     const parsed = deleteSchema.safeParse({ id: rawId });
     if (!parsed.success) {
         return { ok: false, message: "ID inválido.", attempt: prev.attempt + 1 };
