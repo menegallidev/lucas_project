@@ -6,7 +6,6 @@ import { CreateClientState, DeleteClientState, UpdateClientState } from "@/types
 import { ClientStatus, TipoPessoa } from "@prisma/client";
 import { isValidCpfCnpj } from "@/lib/validators";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { z } from "zod";
 
 export type ClientDTO = {
@@ -286,5 +285,9 @@ export async function updateClientAction(prev: UpdateClientState, formData: Form
     revalidatePath("/clients");
     revalidatePath(`/clients/${parsed.data.id}`);
 
-    redirect("/clients");
+    return {
+        ok: true,
+        attempt: prev.attempt + 1,
+        message: "Cliente atualizado com sucesso!",
+    };
 }

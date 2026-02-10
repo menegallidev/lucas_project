@@ -4,7 +4,6 @@ import { prisma } from "@/lib/prisma";
 import { deleteUserById } from "@/server/services/users.service";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { z } from "zod";
 
 export type CreateUserState = {
@@ -209,5 +208,9 @@ export async function updateUserAction(
     revalidatePath("/users");
     revalidatePath(`/users/${parsed.data.id}`);
 
-    redirect("/users");
+    return {
+        ok: true,
+        attempt: prev.attempt + 1,
+        message: "Usuário atualizado com sucesso!",
+    };
 }

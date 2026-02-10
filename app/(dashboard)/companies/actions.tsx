@@ -6,7 +6,6 @@ import { CreateCompanyState, DeleteCompanyState, UpdateCompanyState } from "@/ty
 import { ClientStatus } from "@prisma/client";
 import { isValidCpfCnpj } from "@/lib/validators";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { z } from "zod";
 
 export type CompanyDTO = {
@@ -194,5 +193,9 @@ export async function updateCompanyAction(prev: UpdateCompanyState, formData: Fo
     revalidatePath("/companies");
     revalidatePath(`/companies/${parsed.data.id}`);
 
-    redirect("/companies");
+    return {
+        ok: true,
+        attempt: prev.attempt + 1,
+        message: "Empresa atualizada com sucesso!",
+    };
 }

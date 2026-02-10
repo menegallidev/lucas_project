@@ -115,8 +115,13 @@ export function EditClientForm({
 
     useEffect(() => {
         if (!state.attempt) return;
+        if (state.ok) {
+            if (state.message) toast.success(state.message);
+            router.push("/clients");
+            return;
+        }
         if (!state.ok) toast.error(state.message ?? "Nao foi possivel salvar.");
-    }, [state.attempt, state.ok, state.message]);
+    }, [state.attempt, state.ok, state.message, router]);
 
     const err = (key: string) => state.fieldErrors?.[key]?.[0];
 

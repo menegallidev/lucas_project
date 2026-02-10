@@ -40,8 +40,13 @@ export function EditCompanyForm({ company }: { company: CompanyDTO }) {
 
     useEffect(() => {
         if (!state.attempt) return;
+        if (state.ok) {
+            if (state.message) toast.success(state.message);
+            router.push("/companies");
+            return;
+        }
         if (!state.ok) toast.error(state.message ?? "Nao foi possivel salvar.");
-    }, [state.attempt, state.ok, state.message]);
+    }, [state.attempt, state.ok, state.message, router]);
 
     const err = (key: string) => state.fieldErrors?.[key]?.[0];
 
