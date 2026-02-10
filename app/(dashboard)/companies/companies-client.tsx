@@ -2,60 +2,48 @@
 
 import { ConfirmDialog } from "@/components/app/confirm-dialog";
 import { Button } from "@/components/ui/button";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { formatCpf } from "@/lib/formatCPF";
+import { CompanyRow } from "@/types/companies/companyRow";
+import { formatPhone } from "@/lib/masks";
 import { MoreHorizontalIcon, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
-import { deleteUserAction, DeleteUserState } from "./actions";
+import { deleteCompanyAction } from "./actions";
+import { DeleteCompanyState } from "@/types/companies/company";
 
-type UserRow = { id: number; name: string; cpf: string };
-const initialDeleteState: DeleteUserState = { ok: true, attempt: 0 };
+const initialDeleteState: DeleteCompanyState = { ok: true, attempt: 0 };
 
-export function UsersClient({ initialUsers, searchParams }: { initialUsers: UserRow[]; searchParams: string; }) {
+export default function CompaniesClient({ initialCompanies, searchParams }: { initialCompanies: CompanyRow[], searchParams: string }) {
     const router = useRouter();
+    const [deleteState, deleteFormAction, deleting] = useActionState(deleteCompanyAction, initialDeleteState);
     const [search, setSearch] = useState<string>(searchParams);
-    const [deleteState, deleteFormAction, deleting] = useActionState(deleteUserAction, initialDeleteState);
-    const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+    const [selectedCompanyId, setSelectedCompanyId] = useState<number | null>(null);
     const [, startTransition] = useTransition();
 
-    function handleSearch() {
+    const handleSearch = () => {
         try {
             const formattedSearch = search.trim();
 
             if (!formattedSearch) {
-                router.push("/users");
+                router.push("/companies");
                 return;
             }
-            router.push(`/users?search=${encodeURIComponent(formattedSearch)}`);
+            router.push(`/companies?search=${encodeURIComponent(formattedSearch)}`);
         } catch (err) {
             toast.error(String((err ?? "")));
         }
-    }
+    };
 
     useEffect(() => {
         if (!deleteState.attempt) return;
 
-        if (deleteState.ok) toast.success(deleteState.message ?? "Usuário excluído com sucesso!");
-        else toast.error(deleteState.message ?? "Não foi possível excluir.");
+        if (deleteState.ok) toast.success(deleteState.message ?? "Empresa excluida com sucesso!");
+        else toast.error(deleteState.message ?? "Nao foi possivel excluir.");
 
         router.refresh();
     }, [deleteState.attempt, deleteState.ok, deleteState.message, router]);
@@ -66,7 +54,7 @@ export function UsersClient({ initialUsers, searchParams }: { initialUsers: User
                 <Field orientation="horizontal">
                     <Input
                         type="search"
-                        placeholder="Pesquise por nome ou CPF..."
+                        placeholder="Pesquise por nome, documento ou email..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         onKeyDown={(e) => {
@@ -87,14 +75,14 @@ export function UsersClient({ initialUsers, searchParams }: { initialUsers: User
                             <Button
                                 variant="outline"
                                 size="icon"
-                                aria-label="Adicionar usuário"
-                                onClick={() => router.push("/users/new")}
+                                aria-label="Adicionar empresa"
+                                onClick={() => router.push("/companies/new")}
                             >
                                 <Plus />
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                            <p>Adicionar usuário</p>
+                            <p>Adicionar empresa</p>
                         </TooltipContent>
                     </Tooltip>
                 </TooltipProvider>
@@ -103,76 +91,93 @@ export function UsersClient({ initialUsers, searchParams }: { initialUsers: User
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead>Código (ID)</TableHead>
-                        <TableHead>Usuário</TableHead>
-                        <TableHead>CPF</TableHead>
-                        <TableHead className="text-right">Ações</TableHead>
+                        <TableHead>Codigo (ID)</TableHead>
+                        <TableHead>Empresa</TableHead>
+                        <TableHead>Nome fantasia</TableHead>
+                        <TableHead>Documento</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Telefone</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Acoes</TableHead>
                     </TableRow>
                 </TableHeader>
 
                 <TableBody>
-                    {initialUsers.map((u) => (
-                        <TableRow key={u.id}>
-                            <TableCell className="font-medium">{u.id}</TableCell>
-                            <TableCell className="font-medium">{u.name}</TableCell>
-                            <TableCell>{formatCpf(u.cpf)}</TableCell>
+                    {initialCompanies.map((c) => (
+                        <TableRow key={c.id}>
+                            <TableCell className="font-medium">{c.id}</TableCell>
+                            <TableCell className="font-medium">{c.name}</TableCell>
+                            <TableCell>{c.tradeName ?? "-"}</TableCell>
+                            <TableCell>{c.document ?? "-"}</TableCell>
+                            <TableCell>{c.email ?? "-"}</TableCell>
+                            <TableCell>{c.phone ? formatPhone(c.phone) : "-"}</TableCell>
+                            <TableCell>
+                                <span
+                                    className={
+                                        c.status === "ATIVO"
+                                            ? "text-emerald-600"
+                                            : "text-red-600"
+                                    }
+                                >
+                                    {c.status}
+                                </span>
+                            </TableCell>
                             <TableCell className="text-right">
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="ghost" size="icon" className="size-8">
                                             <MoreHorizontalIcon />
-                                            <span className="sr-only">Opções</span>
+                                            <span className="sr-only">Opcoes</span>
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                        <DropdownMenuItem onClick={() => router.push(`/users/${u.id}`)}>
+                                        <DropdownMenuItem onClick={() => router.push(`/companies/${c.id}`)}>
                                             Editar
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />
                                         <ConfirmDialog
-                                            title="Excluir usuário"
-                                            description={
+                                            title="Excluir empresa"
+                                            description={(
                                                 <>
-                                                    Tem certeza que deseja excluir este usuário? <br />
-                                                    Essa ação não pode ser desfeita.
+                                                    Tem certeza que deseja excluir esta empresa? <br />
+                                                    Essa acao nao pode ser desfeita.
                                                 </>
-                                            }
+                                            )}
                                             confirmText={deleting ? "Excluindo..." : "Excluir"}
                                             cancelText="Cancelar"
                                             confirmVariantClassName="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                            trigger={
+                                            trigger={(
                                                 <DropdownMenuItem
                                                     variant="destructive"
                                                     onSelect={(e) => {
                                                         e.preventDefault();
-                                                        setSelectedUserId(u.id);
+                                                        setSelectedCompanyId(c.id);
                                                     }}
                                                 >
                                                     Excluir
                                                 </DropdownMenuItem>
-                                            }
+                                            )}
                                             onConfirm={() => {
-                                                if (!selectedUserId) return;
+                                                if (!selectedCompanyId) return;
 
                                                 const fd = new FormData();
-                                                fd.set("id", String(selectedUserId));
+                                                fd.set("id", String(selectedCompanyId));
 
                                                 startTransition(() => {
                                                     void deleteFormAction(fd);
                                                 });
                                             }}
                                         />
-
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </TableCell>
                         </TableRow>
                     ))}
 
-                    {initialUsers.length === 0 && (
+                    {initialCompanies.length === 0 && (
                         <TableRow>
-                            <TableCell colSpan={3} className="text-center text-muted-foreground">
-                                Nenhum usuário encontrado.
+                            <TableCell colSpan={8} className="text-center text-muted-foreground">
+                                Nenhuma empresa encontrada.
                             </TableCell>
                         </TableRow>
                     )}

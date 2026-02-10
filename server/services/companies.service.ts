@@ -1,10 +1,10 @@
 import { prisma } from "@/lib/prisma";
-import { ClientRow } from "@/types/clients/clientRow";
+import { CompanyRow } from "@/types/companies/companyRow";
 
-export async function listClientsBySearch(search?: string): Promise<ClientRow[]> {
+export async function listCompaniesBySearch(search?: string): Promise<CompanyRow[]> {
     const formattedSearch: string = (search ?? "").trim();
 
-    const items = prisma.client.findMany({
+    const items = prisma.company.findMany({
         where: formattedSearch
             ? {
                 OR: [
@@ -12,22 +12,18 @@ export async function listClientsBySearch(search?: string): Promise<ClientRow[]>
                     { tradeName: { contains: formattedSearch, mode: "insensitive" } },
                     { document: { contains: formattedSearch } },
                     { email: { contains: formattedSearch, mode: "insensitive" } },
-                    { phone1: { contains: formattedSearch } },
-                    { city: { contains: formattedSearch, mode: "insensitive" } },
+                    { phone: { contains: formattedSearch } },
                 ],
             }
             : undefined,
         orderBy: { createdAt: "desc" },
         select: {
             id: true,
-            personType: true,
             name: true,
             tradeName: true,
             document: true,
             email: true,
-            phone1: true,
-            city: true,
-            state: true,
+            phone: true,
             status: true,
             createdAt: true,
             updatedAt: true,
@@ -37,21 +33,31 @@ export async function listClientsBySearch(search?: string): Promise<ClientRow[]>
     return items;
 }
 
-export async function deleteClientById(id: number) {
+export async function listCompaniesForSelect(): Promise<Array<{ id: number; name: string }>> {
+    const items = prisma.company.findMany({
+        orderBy: { name: "asc" },
+        where: { status: "ATIVO" },
+        select: { id: true, name: true },
+    });
+
+    return items;
+}
+
+export async function deleteCompanyById(id: number) {
     if (!Number.isInteger(id) || id <= 0) {
         throw new Error("ID invalido");
     }
 
-    const exists = await prisma.client.findUnique({
+    const exists = await prisma.company.findUnique({
         where: { id },
         select: { id: true },
     });
 
     if (!exists) {
-        throw new Error("Cliente nao encontrado");
+        throw new Error("Empresa nao encontrada");
     }
 
-    await prisma.client.delete({ where: { id } });
+    await prisma.company.delete({ where: { id } });
 
     return { ok: true };
 }

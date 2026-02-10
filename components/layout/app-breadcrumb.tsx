@@ -15,6 +15,7 @@ const LABELS: Record<string, string> = {
     dashboard: "Dashboard",
     users: "Usuários",
     clients: "Clientes",
+    companies: "Empresas",
     appointments: "Agendamentos",
     "work-orders": "Ordens de Serviço",
     inventory: "Estoque",

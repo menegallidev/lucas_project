@@ -7,7 +7,5 @@ export default async function ClientsPage({ searchParams }: { searchParams: Clie
     const search = awaitSearchParams?.search ?? "";
     const clients = await listClientsBySearch(search);
 
-    console.log({ clients });
-
     return <ClientsClient initialClients={clients} searchParams={search} />;
 }

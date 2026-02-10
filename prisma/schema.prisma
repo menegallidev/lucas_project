@@ -37,7 +37,6 @@ model Client {
   tradeName  String?
   document   String?    @unique
   stateTaxId String?
-  birthDate  DateTime?
 
   email    String?
   phone1   String
@@ -56,9 +55,28 @@ model Client {
   paymentTerms String?
   notes        String?
 
+  companyId Int?
+  company   Company? @relation(fields: [companyId], references: [id])
+
   status    ClientStatus @default(ATIVO)
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
 
   @@map("clients")
+}
+
+model Company {
+  id        Int     @id @default(autoincrement())
+  name      String
+  tradeName String?
+  document  String? @unique
+  email     String?
+  phone     String?
+
+  clients   Client[]
+  status    ClientStatus @default(ATIVO)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@map("companies")
 }

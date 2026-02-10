@@ -40,6 +40,10 @@ const data = {
                     url: "/clients",
                 },
                 {
+                    title: "Empresas",
+                    url: "/companies",
+                },
+                {
                     title: "Usuários",
                     url: "/users",
                 },

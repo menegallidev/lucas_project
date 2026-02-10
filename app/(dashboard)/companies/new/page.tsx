@@ -2,12 +2,9 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ArrowLeftSquare } from "lucide-react";
 import Link from "next/link";
-import { NewClientForm } from "./new-client-form";
-import { listCompaniesForSelect } from "@/server/services/companies.service";
+import { NewCompanyForm } from "./new-company-form";
 
-export default async function NewClientPage() {
-    const companies = await listCompaniesForSelect();
-
+export default function NewCompanyPage() {
     return (
         <div className="space-y-6">
             <div className="flex justify-end">
@@ -15,7 +12,7 @@ export default async function NewClientPage() {
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <Button asChild variant="outline" size="icon" aria-label="Voltar">
-                                <Link href="/clients">
+                                <Link href="/companies">
                                     <ArrowLeftSquare />
                                 </Link>
                             </Button>
@@ -27,7 +24,7 @@ export default async function NewClientPage() {
                 </TooltipProvider>
             </div>
 
-            <NewClientForm companies={companies} />
+            <NewCompanyForm />
         </div>
     );
 }

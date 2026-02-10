@@ -1,17 +1,17 @@
-export type DeleteClientState = {
+export type DeleteCompanyState = {
     ok: boolean;
     message?: string;
     attempt: number;
 };
 
-export type CreateClientState = {
+export type CreateCompanyState = {
     ok: boolean;
     message?: string;
     fieldErrors?: Record<string, string[]>;
     attempt: number;
 };
 
-export type UpdateClientState = {
+export type UpdateCompanyState = {
     ok: boolean;
     message?: string;
     fieldErrors?: Record<string, string[]>;

@@ -9,8 +9,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ClientRow } from "@/types/clients/clientRow";
 import { MoreHorizontalIcon, Plus } from "lucide-react";
+import { formatPhone } from "@/lib/masks";
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { deleteClientAction } from "./actions";
 import { DeleteClientState } from "@/types/clients/client";
@@ -22,6 +23,7 @@ export default function ClientsClient({ initialClients, searchParams }: { initia
     const [deleteState, deleteFormAction, deleting] = useActionState(deleteClientAction, initialDeleteState);
     const [search, setSearch] = useState<string>(searchParams);
     const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
+    const [, startTransition] = useTransition();
 
     const handleSearch = () => {
         try {
@@ -117,10 +119,20 @@ export default function ClientsClient({ initialClients, searchParams }: { initia
                             <TableCell>{u.tradeName ?? "-"}</TableCell>
                             <TableCell>{u.document ?? "-"}</TableCell>
                             <TableCell>{u.email ?? "-"}</TableCell>
-                            <TableCell>{u.phone1}</TableCell>
+                            <TableCell>{formatPhone(u.phone1)}</TableCell>
                             <TableCell>{u.city}</TableCell>
                             <TableCell>{u.state}</TableCell>
-                            <TableCell>{u.status}</TableCell>
+                            <TableCell>
+                                <span
+                                    className={
+                                        u.status === "ATIVO"
+                                            ? "text-emerald-600"
+                                            : "text-red-600"
+                                    }
+                                >
+                                    {u.status}
+                                </span>
+                            </TableCell>
 
                             <TableCell className="text-right">
                                 <DropdownMenu>
@@ -157,13 +169,15 @@ export default function ClientsClient({ initialClients, searchParams }: { initia
                                                     Excluir
                                                 </DropdownMenuItem>
                                             }
-                                            onConfirm={async () => {
+                                            onConfirm={() => {
                                                 if (!selectedClientId) return;
 
                                                 const fd = new FormData();
                                                 fd.set("id", String(selectedClientId));
 
-                                                await deleteFormAction(fd);
+                                                startTransition(() => {
+                                                    void deleteFormAction(fd);
+                                                });
                                             }}
                                         />
                                     </DropdownMenuContent>
