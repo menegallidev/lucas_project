@@ -17,6 +17,11 @@ enum ClientStatus {
   INATIVO
 }
 
+enum InventoryMovementType {
+  ENTRADA
+  SAIDA
+}
+
 model User {
   id           Int    @id @default(autoincrement())
   name         String
@@ -57,6 +62,7 @@ model Client {
 
   companyId Int?
   company   Company? @relation(fields: [companyId], references: [id])
+  agendaEvents AgendaEvent[]
 
   status    ClientStatus @default(ATIVO)
   createdAt DateTime     @default(now())
@@ -79,4 +85,55 @@ model Company {
   updatedAt DateTime     @updatedAt
 
   @@map("companies")
+}
+
+model AgendaEvent {
+  id Int @id @default(autoincrement())
+
+  title    String
+  startAt  DateTime
+  location String?
+  notes    String?
+
+  clientId Int?
+  client   Client? @relation(fields: [clientId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("agenda_events")
+}
+
+model Product {
+  id Int @id @default(autoincrement())
+
+  name  String
+  price Float
+  model String
+  notes String?
+  status ClientStatus @default(ATIVO)
+  stockQuantity Float @default(0)
+  inventoryMovements InventoryMovement[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("products")
+}
+
+model InventoryMovement {
+  id Int @id @default(autoincrement())
+
+  movementType InventoryMovementType
+  quantity     Float
+  performedAt  DateTime
+  notes        String?
+
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("inventory_movements")
 }

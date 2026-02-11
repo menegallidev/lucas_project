@@ -9,8 +9,10 @@ import {
 } from "@/components/ui/sidebar";
 import {
     ClipboardList,
+    CalendarDays,
+    Boxes,
     LayoutDashboard,
-    Settings2
+    Settings2,
 } from "lucide-react";
 import * as React from "react";
 import { NavMain } from "./nav-main";
@@ -30,6 +32,17 @@ const data = {
             icon: LayoutDashboard,
         },
         {
+            title: "Agenda",
+            url: "/agenda",
+            icon: CalendarDays,
+        },
+
+        {
+            title: "Estoque",
+            url: "/inventory",
+            icon: Boxes,
+        },
+        {
             title: "Cadastros",
             url: "#",
             icon: ClipboardList,
@@ -42,6 +55,10 @@ const data = {
                 {
                     title: "Empresas",
                     url: "/companies",
+                },
+                {
+                    title: "Produtos",
+                    url: "/products",
                 },
                 {
                     title: "Usuários",
@@ -64,7 +81,7 @@ const data = {
 };
 
 export function AppSidebar({ user, ...props }: React.ComponentProps<typeof Sidebar> & {
-    user: { name: string, email: string, avatar: string }
+    user: { name: string; email: string; avatar: string };
 }) {
     return (
         <Sidebar collapsible="icon" {...props}>
