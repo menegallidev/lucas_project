@@ -61,6 +61,7 @@ export default function InventoryClient({
 
         if (state.ok) {
             if (state.message) toast.success(state.message);
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setMovementType("ENTRADA");
             setProductId("");
             setQuantity("1");

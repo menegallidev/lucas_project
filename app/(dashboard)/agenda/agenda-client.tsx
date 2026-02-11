@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useActionState, useEffect, useMemo, useState, useTransition } from "react";
@@ -375,7 +376,7 @@ export function AgendaClient({
                                         </div>
                                         {hasEvents && (
                                             <div className="mt-2 space-y-1">
-                                                {eventsByDate[key].slice(0, 2).map((ev) => (
+                                                {eventsByDate[key].slice(0, 2).map((ev: any) => (
                                                     <div
                                                         key={ev.id}
                                                         className="truncate text-[11px] text-muted-foreground"
