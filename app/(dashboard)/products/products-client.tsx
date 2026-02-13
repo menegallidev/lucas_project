@@ -136,7 +136,7 @@ export default function ProductsClient({ initialProducts, searchParams }: { init
                                         <DropdownMenuItem onClick={() => router.push(`/products/${product.id}`)}>
                                             Editar
                                         </DropdownMenuItem>
-                                        <DropdownMenuSeparator />
+                                        {/* <DropdownMenuSeparator />
                                         <ConfirmDialog
                                             title="Excluir produto"
                                             description={(
@@ -169,7 +169,7 @@ export default function ProductsClient({ initialProducts, searchParams }: { init
                                                     void deleteFormAction(fd);
                                                 });
                                             }}
-                                        />
+                                        /> */}
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </TableCell>

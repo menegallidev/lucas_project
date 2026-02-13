@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ClientRow } from "@/types/clients/clientRow";
@@ -18,22 +19,34 @@ import { DeleteClientState } from "@/types/clients/client";
 
 const initialDeleteState: DeleteClientState = { ok: true, attempt: 0 };
 
-export default function ClientsClient({ initialClients, searchParams }: { initialClients: ClientRow[], searchParams: string }) {
+export default function ClientsClient({
+    initialClients,
+    searchParams,
+    initialCompanies,
+    selectedCompanyId,
+}: {
+    initialClients: ClientRow[];
+    searchParams: string;
+    initialCompanies: Array<{ id: number; name: string }>;
+    selectedCompanyId: string;
+}) {
     const router = useRouter();
     const [deleteState, deleteFormAction, deleting] = useActionState(deleteClientAction, initialDeleteState);
     const [search, setSearch] = useState<string>(searchParams);
+    const [companyId, setCompanyId] = useState<string>(selectedCompanyId);
     const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
     const [, startTransition] = useTransition();
 
     const handleSearch = () => {
         try {
             const formattedSearch = search.trim();
+            const params = new URLSearchParams();
 
-            if (!formattedSearch) {
-                router.push("/clients");
-                return;
-            }
-            router.push(`/clients?search=${encodeURIComponent(formattedSearch)}`);
+            if (formattedSearch) params.set("search", formattedSearch);
+            if (companyId !== "all") params.set("companyId", companyId);
+
+            const query = params.toString();
+            router.push(query ? `/clients?${query}` : "/clients");
         } catch (err) {
             toast.error(String((err ?? "")));
         }
@@ -64,6 +77,19 @@ export default function ClientsClient({ initialClients, searchParams }: { initia
                             }
                         }}
                     />
+                    <Select value={companyId} onValueChange={setCompanyId}>
+                        <SelectTrigger className="w-[240px]">
+                            <SelectValue placeholder="Filtrar por empresa" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Todas as empresas</SelectItem>
+                            {initialCompanies.map((company) => (
+                                <SelectItem key={company.id} value={String(company.id)}>
+                                    {company.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                     <Button type="button" onClick={handleSearch}>
                         Pesquisar
                     </Button>
@@ -96,6 +122,7 @@ export default function ClientsClient({ initialClients, searchParams }: { initia
                         {/* novas colunas */}
                         <TableHead>Tipo</TableHead>
                         <TableHead>Nome</TableHead>
+                        <TableHead>Empresa</TableHead>
                         <TableHead>Nome fantasia</TableHead>
                         <TableHead>Documento</TableHead>
                         <TableHead>Email</TableHead>
@@ -116,6 +143,7 @@ export default function ClientsClient({ initialClients, searchParams }: { initia
                             {/* novas colunas */}
                             <TableCell>{u.personType}</TableCell>
                             <TableCell>{u.name}</TableCell>
+                            <TableCell>{u.companyName ?? "-"}</TableCell>
                             <TableCell>{u.tradeName ?? "-"}</TableCell>
                             <TableCell>{u.document ?? "-"}</TableCell>
                             <TableCell>{u.email ?? "-"}</TableCell>
@@ -146,7 +174,7 @@ export default function ClientsClient({ initialClients, searchParams }: { initia
                                         <DropdownMenuItem onClick={() => router.push(`/clients/${u.id}`)}>
                                             Editar
                                         </DropdownMenuItem>
-                                        <DropdownMenuSeparator />
+                                        {/* <DropdownMenuSeparator />
                                         <ConfirmDialog
                                             title="Excluir cliente"
                                             description={
@@ -179,7 +207,7 @@ export default function ClientsClient({ initialClients, searchParams }: { initia
                                                     void deleteFormAction(fd);
                                                 });
                                             }}
-                                        />
+                                        /> */}
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </TableCell>
@@ -188,7 +216,7 @@ export default function ClientsClient({ initialClients, searchParams }: { initia
 
                     {initialClients.length === 0 && (
                         <TableRow>
-                            <TableCell colSpan={11} className="text-center text-muted-foreground">
+                            <TableCell colSpan={12} className="text-center text-muted-foreground">
                                 Nenhum cliente encontrado.
                             </TableCell>
                         </TableRow>

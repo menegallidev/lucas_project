@@ -3,6 +3,7 @@ import { CalendarDays, Package, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { listAgendaEventsByDay } from "@/server/services/agenda.service";
+import { EventDetailsDialog } from "./event-details-dialog";
 
 export default async function DashboardPage() {
     const today = new Date();
@@ -81,6 +82,15 @@ export default async function DashboardPage() {
                                         {event.location && (
                                             <p className="text-sm text-muted-foreground">Local: {event.location}</p>
                                         )}
+                                        <div className="mt-2">
+                                            <EventDetailsDialog
+                                                title={event.title}
+                                                startAt={event.startAt}
+                                                clientName={event.clientName}
+                                                location={event.location}
+                                                notes={event.notes}
+                                            />
+                                        </div>
                                     </li>
                                 ))}
                             </ul>
