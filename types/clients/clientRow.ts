@@ -4,6 +4,7 @@ export type ClientRow = {
     id: number;
     personType: TipoPessoa;
     name: string;
+    companyName: string | null;
     tradeName: string | null;
     document: string | null;
 

@@ -1,3 +1,4 @@
 export type ClientSearchType = Promise<{
-    search: string;
+    search?: string;
+    companyId?: string;
 }>;

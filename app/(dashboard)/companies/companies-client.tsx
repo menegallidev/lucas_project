@@ -134,7 +134,7 @@ export default function CompaniesClient({ initialCompanies, searchParams }: { in
                                         <DropdownMenuItem onClick={() => router.push(`/companies/${c.id}`)}>
                                             Editar
                                         </DropdownMenuItem>
-                                        <DropdownMenuSeparator />
+                                        {/* <DropdownMenuSeparator />
                                         <ConfirmDialog
                                             title="Excluir empresa"
                                             description={(
@@ -167,7 +167,7 @@ export default function CompaniesClient({ initialCompanies, searchParams }: { in
                                                     void deleteFormAction(fd);
                                                 });
                                             }}
-                                        />
+                                        /> */}
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </TableCell>
