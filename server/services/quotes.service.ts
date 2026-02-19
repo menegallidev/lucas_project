@@ -127,23 +127,23 @@ export async function listQuotesPaginated(input?: {
 
 export async function createQuote(input: CreateQuotePayload): Promise<{ quoteId: number }> {
     if (!Number.isInteger(input.clientId) || input.clientId <= 0) {
-        throw new Error("Cliente invalido.");
+        throw new Error("Cliente inválido.");
     }
 
     if (!Array.isArray(input.items) || input.items.length === 0) {
-        throw new Error("Adicione ao menos um item no orcamento.");
+        throw new Error("Adicione ao menos um item no orçamento.");
     }
 
     const uniqueProductIds = new Set<number>();
     for (const item of input.items) {
         if (!Number.isInteger(item.productId) || item.productId <= 0) {
-            throw new Error("Produto invalido no orcamento.");
+            throw new Error("Produto inválido no orçamento.");
         }
         if (!Number.isFinite(item.quantity) || item.quantity <= 0) {
-            throw new Error("Quantidade invalida no orcamento.");
+            throw new Error("Quantidade inválida no orçamento.");
         }
         if (uniqueProductIds.has(item.productId)) {
-            throw new Error("Nao e permitido repetir o mesmo produto em multiplas linhas.");
+            throw new Error("Não é permitido repetir o mesmo produto em múltiplas linhas.");
         }
 
         uniqueProductIds.add(item.productId);
@@ -155,11 +155,11 @@ export async function createQuote(input: CreateQuotePayload): Promise<{ quoteId:
     });
 
     if (!client) {
-        throw new Error("Cliente nao encontrado.");
+        throw new Error("Cliente não encontrado.");
     }
 
     if (client.status !== ClientStatus.ATIVO) {
-        throw new Error("Somente clientes ativos podem receber orcamento.");
+        throw new Error("Somente clientes ativos podem receber orçamento.");
     }
 
     const productIds = [...uniqueProductIds];
@@ -176,7 +176,7 @@ export async function createQuote(input: CreateQuotePayload): Promise<{ quoteId:
     });
 
     if (products.length !== productIds.length) {
-        throw new Error("Um ou mais produtos nao estao ativos ou nao existem.");
+        throw new Error("Um ou mais produtos não estão ativos ou não existem.");
     }
 
     const productById = new Map(products.map((product) => [product.id, product]));
@@ -184,7 +184,7 @@ export async function createQuote(input: CreateQuotePayload): Promise<{ quoteId:
     const normalizedItems = input.items.map((item) => {
         const product = productById.get(item.productId);
         if (!product) {
-            throw new Error(`Produto ${item.productId} nao encontrado.`);
+            throw new Error(`Produto ${item.productId} não encontrado.`);
         }
 
         const quantity = clampPositiveNumber(item.quantity);
@@ -256,7 +256,7 @@ export async function createQuote(input: CreateQuotePayload): Promise<{ quoteId:
 
 export async function markQuoteAsSold(quoteId: number): Promise<{ quoteId: number; soldAt: Date }> {
     if (!Number.isInteger(quoteId) || quoteId <= 0) {
-        throw new Error("Orcamento invalido.");
+        throw new Error("Orçamento inválido.");
     }
 
     const soldAt = new Date();
@@ -277,15 +277,15 @@ export async function markQuoteAsSold(quoteId: number): Promise<{ quoteId: numbe
         });
 
         if (!quote) {
-            throw new Error("Orcamento nao encontrado.");
+            throw new Error("Orçamento não encontrado.");
         }
 
         if (quote.status !== PrismaQuoteStatus.PENDENTE) {
-            throw new Error("Apenas orcamentos pendentes podem ser marcados como vendidos.");
+            throw new Error("Apenas orçamentos pendentes podem ser marcados como vendidos.");
         }
 
         if (quote.items.length === 0) {
-            throw new Error("Orcamento sem itens nao pode ser vendido.");
+            throw new Error("Orçamento sem itens não pode ser vendido.");
         }
 
         const markAsSold = await tx.quote.updateMany({
@@ -300,43 +300,194 @@ export async function markQuoteAsSold(quoteId: number): Promise<{ quoteId: numbe
         });
 
         if (markAsSold.count === 0) {
-            throw new Error("Nao foi possivel marcar o orcamento como vendido.");
+            throw new Error("Não foi possível marcar o orçamento como vendido.");
         }
 
         for (const item of quote.items) {
-            const stockUpdate = await tx.product.updateMany({
+            const product = await tx.product.findUnique({
                 where: {
                     id: item.productId,
-                    status: ClientStatus.ATIVO,
-                    stockQuantity: {
-                        gte: item.quantity,
-                    },
                 },
-                data: {
-                    stockQuantity: {
-                        decrement: item.quantity,
-                    },
+                select: {
+                    id: true,
+                    status: true,
+                    stockQuantity: true,
                 },
             });
 
-            if (stockUpdate.count === 0) {
-                throw new Error("Estoque insuficiente ou produto inativo para concluir a venda.");
+            if (!product || product.status !== ClientStatus.ATIVO) {
+                throw new Error("Produto inativo ou não encontrado para concluir a venda.");
             }
 
-            await tx.inventoryMovement.create({
-                data: {
-                    movementType: InventoryMovementType.SAIDA,
-                    productId: item.productId,
-                    quantity: item.quantity,
-                    performedAt: soldAt,
-                    notes: `Saida automatica pela venda do orcamento #${quoteId}`,
-                },
-            });
+            const requestedQuantity = clampPositiveNumber(item.quantity);
+            const availableStock = clampPositiveNumber(product.stockQuantity);
+            const quantityToDecrement = Math.min(requestedQuantity, availableStock);
+
+            if (quantityToDecrement > 0) {
+                await tx.product.update({
+                    where: {
+                        id: item.productId,
+                    },
+                    data: {
+                        stockQuantity: {
+                            decrement: quantityToDecrement,
+                        },
+                    },
+                });
+
+                await tx.inventoryMovement.create({
+                    data: {
+                        movementType: InventoryMovementType.SAIDA,
+                        productId: item.productId,
+                        quantity: quantityToDecrement,
+                        performedAt: soldAt,
+                        notes: `Saída automática pela venda do orçamento #${quoteId}`,
+                    },
+                });
+            }
         }
 
         return {
             quoteId,
             soldAt,
         };
+    });
+}
+
+export type QuoteForExport = {
+    id: number;
+    title: string | null;
+    notes: string | null;
+    status: QuoteStatus;
+    purchaseTotal: number;
+    saleGrossTotal: number;
+    itemDiscountTotal: number;
+    generalDiscountAmount: number;
+    saleNetTotal: number;
+    createdAt: Date;
+    soldAt: Date | null;
+    clientName: string;
+    items: Array<{
+        id: number;
+        productName: string;
+        productModel: string;
+        quantity: number;
+        purchaseUnitPrice: number;
+        saleUnitPrice: number;
+        discountType: PrismaQuoteDiscountType;
+        discountValue: number;
+        discountAmount: number;
+        totalSaleGross: number;
+        totalSaleNet: number;
+    }>;
+};
+
+export async function findQuoteForExport(quoteId: number): Promise<QuoteForExport | null> {
+    if (!Number.isInteger(quoteId) || quoteId <= 0) {
+        throw new Error("Orçamento inválido.");
+    }
+
+    const quote = await prisma.quote.findUnique({
+        where: { id: quoteId },
+        select: {
+            id: true,
+            title: true,
+            notes: true,
+            status: true,
+            purchaseTotal: true,
+            saleGrossTotal: true,
+            itemDiscountTotal: true,
+            generalDiscountAmount: true,
+            saleNetTotal: true,
+            createdAt: true,
+            soldAt: true,
+            client: {
+                select: {
+                    name: true,
+                },
+            },
+            items: {
+                orderBy: {
+                    id: "asc",
+                },
+                select: {
+                    id: true,
+                    quantity: true,
+                    purchaseUnitPrice: true,
+                    saleUnitPrice: true,
+                    discountType: true,
+                    discountValue: true,
+                    discountAmount: true,
+                    totalSaleGross: true,
+                    totalSaleNet: true,
+                    product: {
+                        select: {
+                            name: true,
+                            model: true,
+                        },
+                    },
+                },
+            },
+        },
+    });
+
+    if (!quote) return null;
+
+    return {
+        id: quote.id,
+        title: quote.title,
+        notes: quote.notes,
+        status: quote.status,
+        purchaseTotal: quote.purchaseTotal,
+        saleGrossTotal: quote.saleGrossTotal,
+        itemDiscountTotal: quote.itemDiscountTotal,
+        generalDiscountAmount: quote.generalDiscountAmount,
+        saleNetTotal: quote.saleNetTotal,
+        createdAt: quote.createdAt,
+        soldAt: quote.soldAt,
+        clientName: quote.client.name,
+        items: quote.items.map((item) => ({
+            id: item.id,
+            productName: item.product.name,
+            productModel: item.product.model,
+            quantity: item.quantity,
+            purchaseUnitPrice: item.purchaseUnitPrice,
+            saleUnitPrice: item.saleUnitPrice,
+            discountType: item.discountType,
+            discountValue: item.discountValue,
+            discountAmount: item.discountAmount,
+            totalSaleGross: item.totalSaleGross,
+            totalSaleNet: item.totalSaleNet,
+        })),
+    };
+}
+
+export async function deleteQuote(quoteId: number): Promise<{ quoteId: number }> {
+    if (!Number.isInteger(quoteId) || quoteId <= 0) {
+        throw new Error("Orçamento inválido.");
+    }
+
+    return prisma.$transaction(async (tx) => {
+        const quote = await tx.quote.findUnique({
+            where: { id: quoteId },
+            select: {
+                id: true,
+                status: true,
+            },
+        });
+
+        if (!quote) {
+            throw new Error("Orçamento não encontrado.");
+        }
+
+        if (quote.status === PrismaQuoteStatus.VENDIDO) {
+            throw new Error("Não é possível excluir um orçamento que já foi vendido.");
+        }
+
+        await tx.quote.delete({
+            where: { id: quoteId },
+        });
+
+        return { quoteId };
     });
 }

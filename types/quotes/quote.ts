@@ -54,6 +54,12 @@ export type MarkQuoteAsSoldState = {
     quoteId?: number;
 };
 
+export type DeleteQuoteState = {
+    ok: boolean;
+    message: string;
+    quoteId?: number;
+};
+
 export type QuoteListStatusFilter = QuoteStatus | "ALL";
 
 export type QuoteListRow = {
