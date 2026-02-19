@@ -56,17 +56,28 @@ export function NewProductForm() {
                 </Field>
 
                 <Field className="col-span-2">
-                    <FieldLabel htmlFor="price">Preco</FieldLabel>
+                    <FieldLabel htmlFor="purchasePrice">Valor de compra</FieldLabel>
                     <MoneyBrlInput
-                        id="price"
-                        name="price"
+                        id="purchasePrice"
+                        name="purchasePrice"
                         placeholder="R$ 0"
                         required
                     />
-                    {err("price") && <p className="text-sm text-destructive">{err("price")}</p>}
+                    {err("purchasePrice") && <p className="text-sm text-destructive">{err("purchasePrice")}</p>}
                 </Field>
 
                 <Field className="col-span-2">
+                    <FieldLabel htmlFor="salePrice">Valor de venda</FieldLabel>
+                    <MoneyBrlInput
+                        id="salePrice"
+                        name="salePrice"
+                        placeholder="R$ 0"
+                        required
+                    />
+                    {err("salePrice") && <p className="text-sm text-destructive">{err("salePrice")}</p>}
+                </Field>
+
+                <Field className="col-span-4">
                     <FieldLabel htmlFor="model">Modelo</FieldLabel>
                     <Input
                         id="model"

@@ -5,6 +5,13 @@ import { useActionState, useEffect, useMemo, useState, useTransition } from "rea
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import {
+    dateFromAppParts,
+    formatInAppTimeZone,
+    getAppDateTimeParts,
+    parseDateKeyInAppTimeZone,
+    toDateKeyInAppTimeZone,
+} from "@/lib/date-time";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -19,10 +26,7 @@ import { ConfirmDialog } from "@/components/app/confirm-dialog";
 const weekDays = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 
 function toDateKey(date: Date) {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, "0");
-    const d = String(date.getDate()).padStart(2, "0");
-    return `${y}-${m}-${d}`;
+    return toDateKeyInAppTimeZone(date);
 }
 
 function toDateKeyParts(year: number, month: number, day: number) {
@@ -33,22 +37,18 @@ function toDateKeyParts(year: number, month: number, day: number) {
 
 function toInputDate(value?: Date) {
     if (!value) return "";
-    const y = value.getFullYear();
-    const m = String(value.getMonth() + 1).padStart(2, "0");
-    const d = String(value.getDate()).padStart(2, "0");
-    return `${y}-${m}-${d}`;
+    const { year, month, day } = getAppDateTimeParts(value);
+    return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
 function toInputTime(value?: Date) {
     if (!value) return "";
-    const h = String(value.getHours()).padStart(2, "0");
-    const m = String(value.getMinutes()).padStart(2, "0");
-    return `${h}:${m}`;
+    const { hour, minute } = getAppDateTimeParts(value);
+    return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
 }
 
 function fromDateKey(dateKey: string) {
-    const [y, m, d] = dateKey.split("-").map(Number);
-    return new Date(y, (m ?? 1) - 1, d ?? 1);
+    return parseDateKeyInAppTimeZone(dateKey);
 }
 
 const initialCreateState: CreateAgendaEventState = { ok: true, attempt: 0 };
@@ -67,6 +67,7 @@ export function AgendaClient({
     initialMonth: number;
 }) {
     const today = new Date();
+    const todayYear = getAppDateTimeParts(today).year;
     const [selectedDate, setSelectedDate] = useState<string>(toDateKey(today));
     const [open, setOpen] = useState(false);
     const [events, setEvents] = useState<AgendaEventRow[]>(initialEvents);
@@ -112,6 +113,7 @@ export function AgendaClient({
     }, [events]);
 
     const selectedEvents = eventsByDate[selectedDate] ?? [];
+    const selectedDateValue = fromDateKey(selectedDate);
 
     const resetEventForm = () => {
         setEditingEventId(null);
@@ -295,7 +297,7 @@ export function AgendaClient({
                 <Card>
                     <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <CardTitle className="text-base">
-                            {new Date(year, month).toLocaleString("pt-BR", {
+                            {formatInAppTimeZone(dateFromAppParts({ year, month: month + 1, day: 1 }), {
                                 month: "long",
                                 year: "numeric",
                             })}
@@ -308,7 +310,9 @@ export function AgendaClient({
                                 <SelectContent>
                                     {Array.from({ length: 12 }).map((_, i) => (
                                         <SelectItem key={i} value={String(i)}>
-                                            {new Date(currentYear, i).toLocaleString("pt-BR", { month: "long" })}
+                                            {formatInAppTimeZone(dateFromAppParts({ year: currentYear, month: i + 1, day: 1 }), {
+                                                month: "long",
+                                            })}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -319,7 +323,7 @@ export function AgendaClient({
                                 </SelectTrigger>
                                 <SelectContent>
                                     {Array.from({ length: 5 }).map((_, i) => {
-                                        const y = today.getFullYear() - 2 + i;
+                                        const y = todayYear - 2 + i;
                                         return (
                                             <SelectItem key={y} value={String(y)}>
                                                 {y}
@@ -404,11 +408,13 @@ export function AgendaClient({
                     </CardHeader>
                     <CardContent>
                         <div className="text-sm text-muted-foreground mb-4">
-                            {fromDateKey(selectedDate).toLocaleDateString("pt-BR", {
-                                day: "2-digit",
-                                month: "long",
-                                year: "numeric",
-                            })}
+                            {selectedDateValue
+                                ? formatInAppTimeZone(selectedDateValue, {
+                                    day: "2-digit",
+                                    month: "long",
+                                    year: "numeric",
+                                })
+                                : selectedDate}
                         </div>
 
                         {selectedEvents.length === 0 && (
@@ -426,7 +432,7 @@ export function AgendaClient({
                                     <div className="flex items-center justify-between">
                                         <div className="font-medium">{ev.title}</div>
                                         <div className="text-xs text-muted-foreground">
-                                            {new Date(ev.startAt).toLocaleTimeString("pt-BR", {
+                                            {formatInAppTimeZone(ev.startAt, {
                                                 hour: "2-digit",
                                                 minute: "2-digit",
                                             })}
@@ -463,7 +469,7 @@ export function AgendaClient({
                                                         <div className="rounded-md border p-3">
                                                             <p className="text-xs text-muted-foreground">Data e horario</p>
                                                             <p className="text-sm font-medium">
-                                                                {new Date(ev.startAt).toLocaleString("pt-BR", {
+                                                                {formatInAppTimeZone(ev.startAt, {
                                                                     day: "2-digit",
                                                                     month: "long",
                                                                     year: "numeric",
@@ -501,7 +507,7 @@ export function AgendaClient({
                                                 setEditingEventId(ev.id);
                                                 setEventTitle(ev.title);
                                                 const dt = new Date(ev.startAt);
-                                                setEventDate(dt);
+                                                setEventDate(parseDateKeyInAppTimeZone(toDateKeyInAppTimeZone(dt)) ?? dt);
                                                 setEventTime(toInputTime(dt));
                                                 setEventClientId(ev.clientId ? String(ev.clientId) : "");
                                                 setEventLocation(ev.location ?? "");

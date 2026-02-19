@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
+import { getAppDateTimeParts, getAppMonthRange } from "@/lib/date-time";
 import type { InventoryProductOption, InventoryMovementRow } from "@/types/inventory/movement";
+import type { TopSellingProductRow } from "@/types/inventory/top-selling";
 import { ClientStatus, InventoryMovementType } from "@prisma/client";
 
 export async function listInventoryProductsForSelect(): Promise<InventoryProductOption[]> {
@@ -113,5 +115,70 @@ export async function createInventoryMovement(input: {
         });
 
         return { ok: true, nextStock };
+    });
+}
+
+function getMonthRange(date: Date) {
+    const { year, month } = getAppDateTimeParts(date);
+    return getAppMonthRange(year, month - 1);
+}
+
+export async function listTopSellingProductsByMonth(referenceDate: Date): Promise<TopSellingProductRow[]> {
+    if (!(referenceDate instanceof Date) || Number.isNaN(referenceDate.getTime())) {
+        throw new Error("Data de referencia invalida.");
+    }
+
+    const { start, end } = getMonthRange(referenceDate);
+
+    const grouped = await prisma.inventoryMovement.groupBy({
+        by: ["productId"],
+        where: {
+            movementType: InventoryMovementType.SAIDA,
+            performedAt: {
+                gte: start,
+                lt: end,
+            },
+        },
+        _sum: {
+            quantity: true,
+        },
+        orderBy: {
+            _sum: {
+                quantity: "desc",
+            },
+        },
+        take: 10,
+    });
+
+    if (grouped.length === 0) {
+        return [];
+    }
+
+    const productIds = grouped.map((item) => item.productId);
+    const products = await prisma.product.findMany({
+        where: { id: { in: productIds } },
+        select: {
+            id: true,
+            name: true,
+            model: true,
+            salePrice: true,
+        },
+    });
+
+    const productById = new Map(products.map((item) => [item.id, item]));
+
+    return grouped.map((item, index) => {
+        const product = productById.get(item.productId);
+        const quantitySold = item._sum.quantity ?? 0;
+        const unitPrice = product?.salePrice ?? 0;
+
+        return {
+            rank: index + 1,
+            productId: item.productId,
+            productName: product?.name ?? `Produto ${item.productId}`,
+            productModel: product?.model ?? "-",
+            quantitySold,
+            totalSold: quantitySold * unitPrice,
+        };
     });
 }

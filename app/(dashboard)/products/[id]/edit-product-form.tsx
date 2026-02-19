@@ -18,7 +18,8 @@ const initialState: UpdateProductState = { ok: true, attempt: 0 };
 type ProductDTO = {
     id: number;
     name: string;
-    price: number;
+    purchasePrice: number;
+    salePrice: number;
     model: string;
     notes: string | null;
     status: ClientStatus;
@@ -73,18 +74,29 @@ export function EditProductForm({ product }: { product: ProductDTO }) {
                     {err("name") && <p className="text-sm text-destructive">{err("name")}</p>}
                 </Field>
 
-                <Field className="col-span-12 md:col-span-4">
-                    <FieldLabel htmlFor="price">Preco</FieldLabel>
+                <Field className="col-span-12 md:col-span-3">
+                    <FieldLabel htmlFor="purchasePrice">Valor de compra</FieldLabel>
                     <MoneyBrlInput
-                        id="price"
-                        name="price"
+                        id="purchasePrice"
+                        name="purchasePrice"
                         required
-                        defaultValue={String(product.price)}
+                        defaultValue={String(product.purchasePrice)}
                     />
-                    {err("price") && <p className="text-sm text-destructive">{err("price")}</p>}
+                    {err("purchasePrice") && <p className="text-sm text-destructive">{err("purchasePrice")}</p>}
                 </Field>
 
-                <Field className="col-span-12 md:col-span-4">
+                <Field className="col-span-12 md:col-span-3">
+                    <FieldLabel htmlFor="salePrice">Valor de venda</FieldLabel>
+                    <MoneyBrlInput
+                        id="salePrice"
+                        name="salePrice"
+                        required
+                        defaultValue={String(product.salePrice)}
+                    />
+                    {err("salePrice") && <p className="text-sm text-destructive">{err("salePrice")}</p>}
+                </Field>
+
+                <Field className="col-span-12 md:col-span-3">
                     <FieldLabel htmlFor="model">Modelo</FieldLabel>
                     <Input
                         id="model"
@@ -96,7 +108,7 @@ export function EditProductForm({ product }: { product: ProductDTO }) {
                     {err("model") && <p className="text-sm text-destructive">{err("model")}</p>}
                 </Field>
 
-                <Field className="col-span-12 md:col-span-4">
+                <Field className="col-span-12 md:col-span-3">
                     <FieldLabel htmlFor="stockQuantity">Quantidade em estoque</FieldLabel>
                     <Input
                         id="stockQuantity"

@@ -16,6 +16,8 @@ import { useActionState, useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { deleteClientAction } from "./actions";
 import { DeleteClientState } from "@/types/clients/client";
+import { formatCpf } from "@/lib/formatCPF";
+import { formatCnpj } from "@/lib/formatCNPJ";
 
 const initialDeleteState: DeleteClientState = { ok: true, attempt: 0 };
 
@@ -145,7 +147,9 @@ export default function ClientsClient({
                             <TableCell>{u.name}</TableCell>
                             <TableCell>{u.companyName ?? "-"}</TableCell>
                             <TableCell>{u.tradeName ?? "-"}</TableCell>
-                            <TableCell>{u.document ?? "-"}</TableCell>
+                            <TableCell>
+                                {u.document?.length === 11 ? formatCpf(u.document) : u.document?.length === 14 ? formatCnpj(u.document) : "-"}
+                            </TableCell>
                             <TableCell>{u.email ?? "-"}</TableCell>
                             <TableCell>{formatPhone(u.phone1)}</TableCell>
                             <TableCell>{u.city}</TableCell>

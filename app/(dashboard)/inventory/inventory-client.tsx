@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { formatInAppTimeZone, toDateKeyInAppTimeZone, toDateTimeLocalInAppTimeZone } from "@/lib/date-time";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -18,10 +19,7 @@ import { toast } from "sonner";
 const initialState: CreateInventoryMovementState = { ok: true, attempt: 0 };
 
 function nowLocalDateTime() {
-    const now = new Date();
-    const timezoneOffsetInMs = now.getTimezoneOffset() * 60 * 1000;
-    const localISOTime = new Date(now.getTime() - timezoneOffsetInMs).toISOString();
-    return localISOTime.slice(0, 16);
+    return toDateTimeLocalInAppTimeZone(new Date());
 }
 
 export default function InventoryClient({
@@ -40,18 +38,18 @@ export default function InventoryClient({
     const [performedAt, setPerformedAt] = useState<string>(nowLocalDateTime());
     const [notes, setNotes] = useState<string>("");
 
-    const todayDateKey = new Date().toISOString().slice(0, 10);
+    const todayDateKey = toDateKeyInAppTimeZone(new Date());
     const entradasHoje = useMemo(
         () =>
             initialMovements.filter(
-                (item) => item.movementType === "ENTRADA" && new Date(item.performedAt).toISOString().slice(0, 10) === todayDateKey
+                (item) => item.movementType === "ENTRADA" && toDateKeyInAppTimeZone(item.performedAt) === todayDateKey
             ).length,
         [initialMovements, todayDateKey]
     );
     const saidasHoje = useMemo(
         () =>
             initialMovements.filter(
-                (item) => item.movementType === "SAIDA" && new Date(item.performedAt).toISOString().slice(0, 10) === todayDateKey
+                (item) => item.movementType === "SAIDA" && toDateKeyInAppTimeZone(item.performedAt) === todayDateKey
             ).length,
         [initialMovements, todayDateKey]
     );
@@ -116,7 +114,7 @@ export default function InventoryClient({
             <section className="grid gap-4 lg:grid-cols-3">
                 <Card className="lg:col-span-1">
                     <CardHeader>
-                        <CardTitle>Lancar Movimentacao</CardTitle>
+                        <CardTitle>Lançar Movimentação</CardTitle>
                         <CardDescription>Registrar entrada ou saida de um produto</CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -160,12 +158,13 @@ export default function InventoryClient({
                                     <Input
                                         id="quantity"
                                         name="quantity"
-                                        type="number"
-                                        min="0.01"
-                                        step="0.01"
+                                        type="text"
+                                        inputMode="numeric"
+                                        pattern="[0-9]*"
                                         value={quantity}
-                                        onChange={(e) => setQuantity(e.target.value)}
+                                        onChange={(e) => setQuantity(e.target.value.replace(/\D/g, ""))}
                                     />
+
                                     {err("quantity") && <p className="text-sm text-destructive">{err("quantity")}</p>}
                                 </Field>
 
@@ -244,7 +243,7 @@ export default function InventoryClient({
                                 {initialMovements.map((movement) => (
                                     <TableRow key={movement.id}>
                                         <TableCell>
-                                            {new Date(movement.performedAt).toLocaleString("pt-BR", {
+                                            {formatInAppTimeZone(movement.performedAt, {
                                                 day: "2-digit",
                                                 month: "2-digit",
                                                 year: "numeric",

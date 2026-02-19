@@ -107,8 +107,9 @@ model AgendaEvent {
 model Product {
   id Int @id @default(autoincrement())
 
-  name  String
-  price Float
+  name String
+  purchasePrice Float
+  salePrice Float
   model String
   notes String?
   status ClientStatus @default(ATIVO)

@@ -18,7 +18,8 @@ export async function listProductsBySearch(search?: string): Promise<ProductRow[
         select: {
             id: true,
             name: true,
-            price: true,
+            purchasePrice: true,
+            salePrice: true,
             model: true,
             notes: true,
             status: true,

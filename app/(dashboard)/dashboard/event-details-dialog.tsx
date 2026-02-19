@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { formatInAppTimeZone } from "@/lib/date-time";
 import {
     Dialog,
     DialogClose,
@@ -44,7 +45,7 @@ export function EventDetailsDialog({ title, startAt, clientName, location, notes
                         <div className="rounded-md border p-3">
                             <p className="text-xs text-muted-foreground">Data e horario</p>
                             <p className="text-sm font-medium">
-                                {new Date(startAt).toLocaleString("pt-BR", {
+                                {formatInAppTimeZone(startAt, {
                                     day: "2-digit",
                                     month: "long",
                                     year: "numeric",
