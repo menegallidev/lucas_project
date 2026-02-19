@@ -29,10 +29,13 @@ export const config = {
         "/clients/:path",
         "/config",
         "/config/:path",
+        "/agenda",
         "/appointments",
         "/appointments/:path",
         "/inventory",
         "/inventory/:path",
+        "/quotes-sales",
+        "/quotes-sales/:path",
         "/work-orders",
         "/work-orders/:path",
     ]

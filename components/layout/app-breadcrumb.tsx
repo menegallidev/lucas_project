@@ -19,6 +19,7 @@ const LABELS: Record<string, string> = {
     companies: "Empresas",
     appointments: "Agendamentos",
     "work-orders": "Ordens de Serviço",
+    "quotes-sales": "Orçamento/Vendas",
     inventory: "Estoque",
     products: "Produtos",
     movements: "Movimentações",

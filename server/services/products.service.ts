@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { ProductRow } from "@/types/products/productRow";
+import type { QuoteProductOption } from "@/types/quotes/quote";
+import { ClientStatus } from "@prisma/client";
 
 export async function listProductsBySearch(search?: string): Promise<ProductRow[]> {
     const formattedSearch: string = (search ?? "").trim();
@@ -30,6 +32,31 @@ export async function listProductsBySearch(search?: string): Promise<ProductRow[
     });
 
     return items;
+}
+
+export async function listActiveProductsForQuoteSelect(): Promise<QuoteProductOption[]> {
+    const items = await prisma.product.findMany({
+        where: { status: ClientStatus.ATIVO },
+        orderBy: { name: "asc" },
+        select: {
+            id: true,
+            name: true,
+            model: true,
+            purchasePrice: true,
+            salePrice: true,
+            stockQuantity: true,
+        },
+    });
+
+    return items.map((product) => ({
+        id: product.id,
+        name: product.name,
+        model: product.model,
+        label: `${product.name} (${product.model})`,
+        purchasePrice: product.purchasePrice,
+        salePrice: product.salePrice,
+        stockQuantity: product.stockQuantity,
+    }));
 }
 
 export async function deleteProductById(id: number) {

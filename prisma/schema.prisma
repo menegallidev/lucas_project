@@ -22,6 +22,16 @@ enum InventoryMovementType {
   SAIDA
 }
 
+enum QuoteStatus {
+  PENDENTE
+  VENDIDO
+}
+
+enum QuoteDiscountType {
+  AMOUNT
+  PERCENT
+}
+
 model User {
   id           Int    @id @default(autoincrement())
   name         String
@@ -63,6 +73,7 @@ model Client {
   companyId Int?
   company   Company? @relation(fields: [companyId], references: [id])
   agendaEvents AgendaEvent[]
+  quotes Quote[]
 
   status    ClientStatus @default(ATIVO)
   createdAt DateTime     @default(now())
@@ -115,11 +126,69 @@ model Product {
   status ClientStatus @default(ATIVO)
   stockQuantity Float @default(0)
   inventoryMovements InventoryMovement[]
+  quoteItems QuoteItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("products")
+}
+
+model Quote {
+  id Int @id @default(autoincrement())
+
+  title String?
+  notes String?
+  status QuoteStatus @default(PENDENTE)
+
+  generalDiscountType QuoteDiscountType @default(AMOUNT)
+  generalDiscountValue Float @default(0)
+
+  purchaseTotal Float
+  saleGrossTotal Float
+  itemDiscountTotal Float
+  generalDiscountAmount Float
+  saleNetTotal Float
+
+  soldAt DateTime?
+
+  clientId Int
+  client Client @relation(fields: [clientId], references: [id])
+
+  items QuoteItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("quotes")
+}
+
+model QuoteItem {
+  id Int @id @default(autoincrement())
+
+  quantity Float
+
+  purchaseUnitPrice Float
+  saleUnitPrice Float
+
+  discountType QuoteDiscountType @default(AMOUNT)
+  discountValue Float @default(0)
+  discountAmount Float @default(0)
+
+  totalPurchase Float
+  totalSaleGross Float
+  totalSaleNet Float
+
+  quoteId Int
+  quote Quote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  productId Int
+  product Product @relation(fields: [productId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("quote_items")
 }
 
 model InventoryMovement {

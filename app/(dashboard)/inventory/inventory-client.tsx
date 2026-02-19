@@ -128,7 +128,7 @@ export default function InventoryClient({
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="ENTRADA">Entrada</SelectItem>
-                                            <SelectItem value="SAIDA">Saida</SelectItem>
+                                            {/* <SelectItem value="SAIDA">Saida</SelectItem> */}
                                         </SelectContent>
                                     </Select>
                                     <input type="hidden" name="movementType" value={movementType} />

@@ -11,6 +11,7 @@ import {
     ClipboardList,
     CalendarDays,
     Boxes,
+    FileText,
     LayoutDashboard,
     Settings2,
 } from "lucide-react";
@@ -35,6 +36,11 @@ const data = {
             title: "Agenda",
             url: "/agenda",
             icon: CalendarDays,
+        },
+        {
+            title: "Orçamento/Vendas",
+            url: "/quotes-sales",
+            icon: FileText,
         },
 
         {
