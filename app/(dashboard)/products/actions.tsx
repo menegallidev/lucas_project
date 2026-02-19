@@ -10,7 +10,8 @@ import { z } from "zod";
 export type ProductDTO = {
     id: number;
     name: string;
-    price: number;
+    purchasePrice: number;
+    salePrice: number;
     model: string;
     notes: string | null;
     status: ClientStatus;
@@ -24,7 +25,8 @@ const emptyToUndefined = (value: unknown) => {
 
 const createProductSchema = z.object({
     name: z.string().min(2, "Nome muito curto"),
-    price: z.number().min(0, "Preco invalido"),
+    purchasePrice: z.number().min(0, "Valor de compra invalido"),
+    salePrice: z.number().min(0, "Valor de venda invalido"),
     model: z.string().min(1, "Modelo obrigatorio"),
     notes: z.preprocess(emptyToUndefined, z.string().optional()),
 });
@@ -65,7 +67,8 @@ function normalizePrice(value: FormDataEntryValue | null | undefined) {
 function extractProductInput(formData: FormData) {
     return {
         name: normalizeText(formData.get("name")),
-        price: Number(normalizePrice(formData.get("price"))),
+        purchasePrice: Number(normalizePrice(formData.get("purchasePrice"))),
+        salePrice: Number(normalizePrice(formData.get("salePrice"))),
         model: normalizeText(formData.get("model")),
         notes: normalizeText(formData.get("notes")),
         status: normalizeText(formData.get("status")),
@@ -87,7 +90,8 @@ export async function createProductAction(prev: CreateProductState, formData: Fo
     await prisma.product.create({
         data: {
             name: parsed.data.name,
-            price: parsed.data.price,
+            purchasePrice: parsed.data.purchasePrice,
+            salePrice: parsed.data.salePrice,
             model: parsed.data.model,
             notes: parsed.data.notes ?? null,
         },
@@ -128,7 +132,8 @@ export async function findProductById(id: number): Promise<ProductDTO | null> {
         select: {
             id: true,
             name: true,
-            price: true,
+            purchasePrice: true,
+            salePrice: true,
             model: true,
             notes: true,
             status: true,
@@ -158,7 +163,8 @@ export async function updateProductAction(prev: UpdateProductState, formData: Fo
         where: { id: parsed.data.id },
         data: {
             name: parsed.data.name,
-            price: parsed.data.price,
+            purchasePrice: parsed.data.purchasePrice,
+            salePrice: parsed.data.salePrice,
             model: parsed.data.model,
             notes: parsed.data.notes ?? null,
             status: parsed.data.status ?? undefined,

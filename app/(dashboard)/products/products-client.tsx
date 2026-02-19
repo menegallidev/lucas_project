@@ -98,7 +98,8 @@ export default function ProductsClient({ initialProducts, searchParams }: { init
                         <TableHead>Codigo (ID)</TableHead>
                         <TableHead>Nome</TableHead>
                         <TableHead>Modelo</TableHead>
-                        <TableHead>Preco</TableHead>
+                        <TableHead>Valor de Compra</TableHead>
+                        <TableHead>Valor de Venda</TableHead>
                         <TableHead>Estoque</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead className="text-right">Acoes</TableHead>
@@ -111,7 +112,8 @@ export default function ProductsClient({ initialProducts, searchParams }: { init
                             <TableCell className="font-medium">{product.id}</TableCell>
                             <TableCell className="font-medium">{product.name}</TableCell>
                             <TableCell>{product.model}</TableCell>
-                            <TableCell>{brl.format(product.price)}</TableCell>
+                            <TableCell>{brl.format(product.purchasePrice)}</TableCell>
+                            <TableCell>{brl.format(product.salePrice)}</TableCell>
                             <TableCell>{product.stockQuantity}</TableCell>
                             <TableCell>
                                 <span
@@ -178,7 +180,7 @@ export default function ProductsClient({ initialProducts, searchParams }: { init
 
                     {initialProducts.length === 0 && (
                         <TableRow>
-                            <TableCell colSpan={7} className="text-center text-muted-foreground">
+                            <TableCell colSpan={8} className="text-center text-muted-foreground">
                                 Nenhum produto encontrado.
                             </TableCell>
                         </TableRow>

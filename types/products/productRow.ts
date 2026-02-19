@@ -3,7 +3,8 @@ import type { ClientStatus } from "@prisma/client";
 export type ProductRow = {
     id: number;
     name: string;
-    price: number;
+    purchasePrice: number;
+    salePrice: number;
     model: string;
     notes: string | null;
     status: ClientStatus;

@@ -116,7 +116,7 @@ export default function InventoryClient({
             <section className="grid gap-4 lg:grid-cols-3">
                 <Card className="lg:col-span-1">
                     <CardHeader>
-                        <CardTitle>Lancar Movimentacao</CardTitle>
+                        <CardTitle>Lançar Movimentação</CardTitle>
                         <CardDescription>Registrar entrada ou saida de um produto</CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -160,12 +160,13 @@ export default function InventoryClient({
                                     <Input
                                         id="quantity"
                                         name="quantity"
-                                        type="number"
-                                        min="0.01"
-                                        step="0.01"
+                                        type="text"
+                                        inputMode="numeric"
+                                        pattern="[0-9]*"
                                         value={quantity}
-                                        onChange={(e) => setQuantity(e.target.value)}
+                                        onChange={(e) => setQuantity(e.target.value.replace(/\D/g, ""))}
                                     />
+
                                     {err("quantity") && <p className="text-sm text-destructive">{err("quantity")}</p>}
                                 </Field>
 

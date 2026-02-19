@@ -15,14 +15,17 @@ type DatePickerProps = {
   onChange?: (date?: Date) => void;
   placeholder?: string;
   name?: string;
+  disabled?: boolean;
 };
 
-export function DatePicker({ value, onChange, placeholder = "Escolha uma data", name }: DatePickerProps) {
+export function DatePicker({ value, onChange, placeholder = "Escolha uma data", name, disabled = false }: DatePickerProps) {
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button
+          type="button"
           variant="outline"
+          disabled={disabled}
           data-empty={!value}
           className={cn(
             "w-full justify-start text-left font-normal data-[empty=true]:text-muted-foreground"

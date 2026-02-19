@@ -1,20 +1,21 @@
 "use client";
 
-import { ConfirmDialog } from "@/components/app/confirm-dialog";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { CompanyRow } from "@/types/companies/companyRow";
+import { formatCpf } from "@/lib/formatCPF";
+import { formatCnpj } from "@/lib/formatCNPJ";
 import { formatPhone } from "@/lib/masks";
+import { DeleteCompanyState } from "@/types/companies/company";
+import { CompanyRow } from "@/types/companies/companyRow";
 import { MoreHorizontalIcon, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { deleteCompanyAction } from "./actions";
-import { DeleteCompanyState } from "@/types/companies/company";
 
 const initialDeleteState: DeleteCompanyState = { ok: true, attempt: 0 };
 
@@ -98,7 +99,7 @@ export default function CompaniesClient({ initialCompanies, searchParams }: { in
                         <TableHead>Email</TableHead>
                         <TableHead>Telefone</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Acoes</TableHead>
+                        <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
                 </TableHeader>
 
@@ -108,7 +109,11 @@ export default function CompaniesClient({ initialCompanies, searchParams }: { in
                             <TableCell className="font-medium">{c.id}</TableCell>
                             <TableCell className="font-medium">{c.name}</TableCell>
                             <TableCell>{c.tradeName ?? "-"}</TableCell>
-                            <TableCell>{c.document ?? "-"}</TableCell>
+
+                            <TableCell>
+                                {c.document?.length === 11 ? formatCpf(c.document) : c.document?.length === 14 ? formatCnpj(c.document) : "-"}
+                            </TableCell>
+
                             <TableCell>{c.email ?? "-"}</TableCell>
                             <TableCell>{c.phone ? formatPhone(c.phone) : "-"}</TableCell>
                             <TableCell>

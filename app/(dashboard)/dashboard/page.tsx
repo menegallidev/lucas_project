@@ -3,11 +3,39 @@ import { CalendarDays, Package, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { listAgendaEventsByDay } from "@/server/services/agenda.service";
+import { listTopSellingProductsByMonth } from "@/server/services/inventory.service";
 import { EventDetailsDialog } from "./event-details-dialog";
+import { SalesByProductSection } from "./sales-by-product-section";
 
-export default async function DashboardPage() {
+type DashboardSearchType = Promise<{
+    month?: string;
+}>;
+
+function toMonthInputValue(date: Date) {
+    const year = String(date.getFullYear());
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    return `${year}-${month}`;
+}
+
+function toMonthDate(monthInput: string) {
+    const [year, month] = monthInput.split("-").map(Number);
+    return new Date(year, month - 1, 1, 0, 0, 0, 0);
+}
+
+function normalizeMonthInput(raw?: string) {
+    if (!raw) return undefined;
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(raw)) return undefined;
+    return raw;
+}
+
+export default async function DashboardPage({ searchParams }: { searchParams?: DashboardSearchType }) {
+    const awaitSearchParams = (await searchParams) ?? {};
     const today = new Date();
+    const selectedMonth = normalizeMonthInput(awaitSearchParams.month) ?? toMonthInputValue(today);
+    const selectedMonthDate = toMonthDate(selectedMonth);
+
     const events = await listAgendaEventsByDay(today);
+    const topSellingProducts = await listTopSellingProductsByMonth(selectedMonthDate);
 
     return (
         <div className="space-y-6">
@@ -98,6 +126,8 @@ export default async function DashboardPage() {
                     </CardContent>
                 </Card>
             </section>
+
+            <SalesByProductSection items={topSellingProducts} selectedMonth={selectedMonth} />
         </div>
     );
 }
