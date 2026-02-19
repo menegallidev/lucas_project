@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CalendarDays, Package, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { dateFromAppParts, formatInAppTimeZone, toMonthValueInAppTimeZone } from "@/lib/date-time";
 import { listAgendaEventsByDay } from "@/server/services/agenda.service";
 import { listTopSellingProductsByMonth } from "@/server/services/inventory.service";
 import { EventDetailsDialog } from "./event-details-dialog";
@@ -11,15 +12,9 @@ type DashboardSearchType = Promise<{
     month?: string;
 }>;
 
-function toMonthInputValue(date: Date) {
-    const year = String(date.getFullYear());
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    return `${year}-${month}`;
-}
-
 function toMonthDate(monthInput: string) {
     const [year, month] = monthInput.split("-").map(Number);
-    return new Date(year, month - 1, 1, 0, 0, 0, 0);
+    return dateFromAppParts({ year, month, day: 1 });
 }
 
 function normalizeMonthInput(raw?: string) {
@@ -31,7 +26,7 @@ function normalizeMonthInput(raw?: string) {
 export default async function DashboardPage({ searchParams }: { searchParams?: DashboardSearchType }) {
     const awaitSearchParams = (await searchParams) ?? {};
     const today = new Date();
-    const selectedMonth = normalizeMonthInput(awaitSearchParams.month) ?? toMonthInputValue(today);
+    const selectedMonth = normalizeMonthInput(awaitSearchParams.month) ?? toMonthValueInAppTimeZone(today);
     const selectedMonthDate = toMonthDate(selectedMonth);
 
     const events = await listAgendaEventsByDay(today);
@@ -80,7 +75,7 @@ export default async function DashboardPage({ searchParams }: { searchParams?: D
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <CalendarDays className="size-5" />
-                            {today.toLocaleDateString("pt-BR", {
+                            {formatInAppTimeZone(today, {
                                 weekday: "long",
                                 day: "2-digit",
                                 month: "2-digit",
@@ -98,7 +93,7 @@ export default async function DashboardPage({ searchParams }: { searchParams?: D
                                         <div className="flex items-center justify-between gap-3">
                                             <p className="font-medium">{event.title}</p>
                                             <span className="text-sm text-muted-foreground">
-                                                {new Date(event.startAt).toLocaleTimeString("pt-BR", {
+                                                {formatInAppTimeZone(event.startAt, {
                                                     hour: "2-digit",
                                                     minute: "2-digit",
                                                 })}

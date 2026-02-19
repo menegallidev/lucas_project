@@ -2,6 +2,7 @@
 
 import { DatePicker } from "@/components/app/inputs/date-picker";
 import { Button } from "@/components/ui/button";
+import { formatInAppTimeZone } from "@/lib/date-time";
 import type { TopSellingProductRow } from "@/types/inventory/top-selling";
 import { Loader2 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -40,7 +41,7 @@ export function SalesByProductSection({
 
     const selectedMonthLabel = useMemo(
         () =>
-            selectedDate.toLocaleDateString("pt-BR", {
+            formatInAppTimeZone(selectedDate, {
                 month: "long",
                 year: "numeric",
             }),

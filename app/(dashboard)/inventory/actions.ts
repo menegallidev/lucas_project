@@ -1,6 +1,7 @@
 "use server";
 
 import { createInventoryMovement } from "@/server/services/inventory.service";
+import { parseDateTimeLocalInAppTimeZone } from "@/lib/date-time";
 import type { CreateInventoryMovementState } from "@/types/inventory/movement";
 import { InventoryMovementType } from "@prisma/client";
 import { revalidatePath } from "next/cache";
@@ -48,8 +49,8 @@ export async function createInventoryMovementAction(
         };
     }
 
-    const performedAtDate = new Date(parsed.data.performedAt);
-    if (Number.isNaN(performedAtDate.getTime())) {
+    const performedAtDate = parseDateTimeLocalInAppTimeZone(parsed.data.performedAt);
+    if (!performedAtDate) {
         return {
             ok: false,
             attempt: prev.attempt + 1,

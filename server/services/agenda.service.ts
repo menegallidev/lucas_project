@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getAppDayRange, getAppMonthRange } from "@/lib/date-time";
 import { AgendaEventRow } from "@/types/agenda/event";
 import { ClientStatus } from "@prisma/client";
 
@@ -11,14 +12,13 @@ export async function listActiveClientsForSelect() {
 }
 
 export async function listAgendaEventsByMonth(year: number, month: number): Promise<AgendaEventRow[]> {
-    const start = new Date(year, month, 1, 0, 0, 0);
-    const end = new Date(year, month + 1, 0, 23, 59, 59, 999);
+    const { start, end } = getAppMonthRange(year, month);
 
     const items = await prisma.agendaEvent.findMany({
         where: {
             startAt: {
                 gte: start,
-                lte: end,
+                lt: end,
             },
         },
         orderBy: { startAt: "asc" },
@@ -45,14 +45,13 @@ export async function listAgendaEventsByMonth(year: number, month: number): Prom
 }
 
 export async function listAgendaEventsByDay(date: Date): Promise<AgendaEventRow[]> {
-    const start = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0);
-    const end = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
+    const { start, end } = getAppDayRange(date);
 
     const items = await prisma.agendaEvent.findMany({
         where: {
             startAt: {
                 gte: start,
-                lte: end,
+                lt: end,
             },
         },
         orderBy: { startAt: "asc" },

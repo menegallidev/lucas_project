@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { formatInAppTimeZone, toDateKeyInAppTimeZone, toDateTimeLocalInAppTimeZone } from "@/lib/date-time";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -18,10 +19,7 @@ import { toast } from "sonner";
 const initialState: CreateInventoryMovementState = { ok: true, attempt: 0 };
 
 function nowLocalDateTime() {
-    const now = new Date();
-    const timezoneOffsetInMs = now.getTimezoneOffset() * 60 * 1000;
-    const localISOTime = new Date(now.getTime() - timezoneOffsetInMs).toISOString();
-    return localISOTime.slice(0, 16);
+    return toDateTimeLocalInAppTimeZone(new Date());
 }
 
 export default function InventoryClient({
@@ -40,18 +38,18 @@ export default function InventoryClient({
     const [performedAt, setPerformedAt] = useState<string>(nowLocalDateTime());
     const [notes, setNotes] = useState<string>("");
 
-    const todayDateKey = new Date().toISOString().slice(0, 10);
+    const todayDateKey = toDateKeyInAppTimeZone(new Date());
     const entradasHoje = useMemo(
         () =>
             initialMovements.filter(
-                (item) => item.movementType === "ENTRADA" && new Date(item.performedAt).toISOString().slice(0, 10) === todayDateKey
+                (item) => item.movementType === "ENTRADA" && toDateKeyInAppTimeZone(item.performedAt) === todayDateKey
             ).length,
         [initialMovements, todayDateKey]
     );
     const saidasHoje = useMemo(
         () =>
             initialMovements.filter(
-                (item) => item.movementType === "SAIDA" && new Date(item.performedAt).toISOString().slice(0, 10) === todayDateKey
+                (item) => item.movementType === "SAIDA" && toDateKeyInAppTimeZone(item.performedAt) === todayDateKey
             ).length,
         [initialMovements, todayDateKey]
     );
@@ -245,7 +243,7 @@ export default function InventoryClient({
                                 {initialMovements.map((movement) => (
                                     <TableRow key={movement.id}>
                                         <TableCell>
-                                            {new Date(movement.performedAt).toLocaleString("pt-BR", {
+                                            {formatInAppTimeZone(movement.performedAt, {
                                                 day: "2-digit",
                                                 month: "2-digit",
                                                 year: "numeric",

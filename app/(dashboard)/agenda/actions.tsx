@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { combineDateAndTimeInAppTimeZone } from "@/lib/date-time";
 import { listAgendaEventsByMonth, deleteAgendaEventById } from "@/server/services/agenda.service";
 import type { CreateAgendaEventState, UpdateAgendaEventState, DeleteAgendaEventState } from "@/types/agenda/event";
 import { revalidatePath } from "next/cache";
@@ -12,8 +13,8 @@ const emptyToUndefined = (value: unknown) => {
 };
 
 const baseSchema = z.object({
-    title: z.string().min(2, "Título muito curto"),
-    date: z.string().min(10, "Data inválida"),
+    title: z.string().min(2, "Titulo muito curto"),
+    date: z.string().min(10, "Data invalida"),
     time: z.preprocess(emptyToUndefined, z.string().optional()),
     clientId: z.preprocess(emptyToUndefined, z.coerce.number().int().positive().optional()),
     location: z.preprocess(emptyToUndefined, z.string().optional()),
@@ -31,9 +32,7 @@ const deleteSchema = z.object({
 });
 
 function buildStartAt(date: string, time?: string) {
-    const [year, month, day] = date.split("-").map(Number);
-    const [h, m] = (time ?? "00:00").split(":").map(Number);
-    return new Date(year, month - 1, day, h || 0, m || 0, 0);
+    return combineDateAndTimeInAppTimeZone(date, time);
 }
 
 export async function listEventsByMonthAction(year: number, month: number) {
@@ -62,10 +61,19 @@ export async function createAgendaEventAction(
         };
     }
 
+    const startAt = buildStartAt(parsed.data.date, parsed.data.time);
+    if (!startAt) {
+        return {
+            ok: false,
+            attempt: prev.attempt + 1,
+            fieldErrors: { date: ["Data invalida"] },
+        };
+    }
+
     await prisma.agendaEvent.create({
         data: {
             title: parsed.data.title,
-            startAt: buildStartAt(parsed.data.date, parsed.data.time),
+            startAt,
             clientId: parsed.data.clientId ?? null,
             location: parsed.data.location ?? null,
             notes: parsed.data.notes ?? null,
@@ -100,11 +108,20 @@ export async function updateAgendaEventAction(
         };
     }
 
+    const startAt = buildStartAt(parsed.data.date, parsed.data.time);
+    if (!startAt) {
+        return {
+            ok: false,
+            attempt: prev.attempt + 1,
+            fieldErrors: { date: ["Data invalida"] },
+        };
+    }
+
     await prisma.agendaEvent.update({
         where: { id: parsed.data.id },
         data: {
             title: parsed.data.title,
-            startAt: buildStartAt(parsed.data.date, parsed.data.time),
+            startAt,
             clientId: parsed.data.clientId ?? null,
             location: parsed.data.location ?? null,
             notes: parsed.data.notes ?? null,
@@ -124,17 +141,17 @@ export async function deleteAgendaEventAction(
 
     const parsed = deleteSchema.safeParse({ id: rawId });
     if (!parsed.success) {
-        return { ok: false, message: "ID inválido.", attempt: prev.attempt + 1 };
+        return { ok: false, message: "ID invalido.", attempt: prev.attempt + 1 };
     }
 
     try {
         await deleteAgendaEventById(parsed.data.id);
         revalidatePath("/agenda");
-        return { ok: true, message: "Evento excluído com sucesso!", attempt: prev.attempt + 1 };
-    } catch (e: any) {
+        return { ok: true, message: "Evento excluido com sucesso!", attempt: prev.attempt + 1 };
+    } catch (e: unknown) {
         return {
             ok: false,
-            message: e?.message ?? "Não foi possível excluir o evento.",
+            message: e instanceof Error ? e.message : "Nao foi possivel excluir o evento.",
             attempt: prev.attempt + 1,
         };
     }

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getAppDateTimeParts, getAppMonthRange } from "@/lib/date-time";
 import type { InventoryProductOption, InventoryMovementRow } from "@/types/inventory/movement";
 import type { TopSellingProductRow } from "@/types/inventory/top-selling";
 import { ClientStatus, InventoryMovementType } from "@prisma/client";
@@ -118,13 +119,8 @@ export async function createInventoryMovement(input: {
 }
 
 function getMonthRange(date: Date) {
-    const year = date.getFullYear();
-    const month = date.getMonth();
-
-    return {
-        start: new Date(year, month, 1, 0, 0, 0, 0),
-        end: new Date(year, month + 1, 1, 0, 0, 0, 0),
-    };
+    const { year, month } = getAppDateTimeParts(date);
+    return getAppMonthRange(year, month - 1);
 }
 
 export async function listTopSellingProductsByMonth(referenceDate: Date): Promise<TopSellingProductRow[]> {
