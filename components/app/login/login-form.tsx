@@ -57,6 +57,18 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
                                     {pending ? "Entrando..." : "Login"}
                                 </Button>
                             </Field>
+
+                            <div className="border-amber-200 text-sm">
+                                <p>
+                                    <strong>--- Usuário para teste ---</strong>
+                                </p>
+                                <p>
+                                    <strong>CPF: </strong>123.123.123-12
+                                </p>
+                                <p>
+                                    <strong>Senha: </strong>123123
+                                </p>
+                            </div>
                         </FieldGroup>
                     </form>
 
