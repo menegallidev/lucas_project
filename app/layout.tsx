@@ -4,7 +4,7 @@ import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 
 export const metadata: Metadata = {
-  title: "Projeto Lucas",
+  title: "Inova Grelhas Lineares",
   description: "Criado por Rafael Menegalli",
 };
 
